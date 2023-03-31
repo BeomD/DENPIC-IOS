@@ -20,32 +20,44 @@ struct ContentView: View {
     let endPointColor2 = Color.white
     //
     var body: some View {
-            ZStack {
-                // Launch Screen
-                if isLoading {
-                    launchScreenView
+        ZStack {
+            // Launch Screen
+            if isLoading {
+                launchScreenView
+            }
+            
+            if !appViewModel.appStoredData.bool(forKey: "launchedBefore")
+            {
+                VStack
+                {
+                    Image("access").resizable().scaledToFit()
+                    Button(action: {appViewModel.appStoredData.set(true, forKey: "launchedBefore")})
+                    {
+                        Text("다음으로")
+                    }.backgroundStyle(Color.pink)
                 }
-                
-                //앱화면
-                NavigationStack(path: $appViewModel.viewSelector){
+                .frame(maxWidth: .infinity,maxHeight: .infinity)
+                .background(Color.white)
+                .ignoresSafeArea(edges: .all)
+            }
+            //앱화면
+            NavigationStack(path: $appViewModel.viewSelector){
                     VStack(){
                         List {
                             NavigationLink("signIn", value: "signIn")
-                            NavigationLink("signUp", value: "signUp")
-                            NavigationLink("findPassword", value: "findPassword")
                             NavigationLink("camera", value : "camera")
-                            }
+                        }
                         .navigationDestination(for: String.self) { string in
-                            SelectView(selector: string)
+                            SelectView().environmentObject(appViewModel).environmentObject(webViewModel).environmentObject(cameraViewModel)
                         }
                     }.navigationTitle("")
                 }.navigationBarBackButtonHidden(true).navigationTitle("")
             }.ignoresSafeArea()
                 .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
                         isLoading.toggle()
                     })}
-              
+        
     }
                  
 }
@@ -55,18 +67,28 @@ extension ContentView {
     var launchScreenView: some View {
         ZStack(alignment: .center) {
             //LinearGradient(gradient: Gradient(colors: [startPointColor,endPointColor]),
-            //               startPoint: .top, endPoint: .bottom)
+            //              startPoint: .top, endPoint: .bottom)
             //.edgesIgnoringSafeArea(.all)
             RadialGradient(colors: [endPointColor2,endPointColor], center: UnitPoint.center, startRadius: 0.0, endRadius:500).ignoresSafeArea()
             VStack(alignment: .center){
-                Text("헤드 텍스트")
-                    .foregroundColor(Color.black)
-                Image("LaunchScreenImage").scaledToFit()
-                Text("미드 테스트")
-                    .foregroundColor(Color.black)
-                Text("버텀 텍스트")
-                    .foregroundColor(Color.black)
-            }
+                Spacer().frame(height: 200)
+                Text("쉽고 정확한 교정촬영의 시작")
+                    .foregroundColor(Color.white)
+                    .font(.system(size: 20))
+                Spacer().frame(height: 50)
+                Image("LaunchScreenImage").frame(width: 140,height: 160)
+                Spacer().frame(height: 50)
+                Text("DENPIC")
+                    .foregroundColor(Color.white)
+                    .font(.system(size: 34))
+                    .fontWeight(.bold)
+                Spacer()
+                Text("WINOI")
+                    .foregroundColor(Color.white)
+                    .font(.system(size: 20))
+                Spacer().frame(height: 20)
+            }.frame(maxWidth: .infinity,maxHeight: .infinity)
+
         }.zIndex(1)
     }
 }

@@ -21,11 +21,24 @@ class CameraViewModel: ObservableObject {
     @Published var isSilentModeOn = false
     @Published var timerCaptureOn = false
     @Published var drawLine = false
+    @Published var viewTimerTopBar = false
+    @Published var viewFlashTopBar = false
     @Published var isEditDrawLineOn = false
     @Published var isEditingTimerCapture = false
     @Published var isEditingFlash = false
-    
-    
+    @Published var timerAmount = 0
+    @Published var horizentalX = CGPoint(x: CGRect().width, y: 0)
+    @Published var verticalY =  CGPoint(x: 0, y: CGRect().height)
+    @Published var dragAmount: CGPoint?
+    @Published var essentialCaptureImage: [UIImage] = []
+    @Published var etcCaptureImage: [UIImage] = []
+    @Published var capturePositionImage: [Image] = [                Image("essential_1"),Image("essential_2"),Image("essential_3"),Image("essential_4"),Image("essential_5"),Image("etc"),Image("etc"),Image("etc"),Image("etc"),Image("etc"),Image("etc"),Image("etc"),Image("etc"),Image("etc"),Image("etc")
+]
+    @Published var capturePositionString: [String] = ["전치","왼쪽교합면","오른쪽교합면","상악","하악","기타구내사진","기타구내사진","기타구내사진","기타구내사진","기타구내사진","기타구내사진","기타구내사진","기타구내사진","기타구내사진","기타구내사진"]
+    @Published var capturePositionIndex = 0
+    @Published var maxCapture = 6
+    @Published var photoData:[PhotoData] = []
+
     // 초기 세팅
     func configure() {
         model.requestAndCheckPermissions()
@@ -44,8 +57,41 @@ class CameraViewModel: ObservableObject {
         model.isSilentModeOn = isSilentModeOn
     }
     
-    func timerCapture(){
-        timerCaptureOn.toggle()
+    // 사진 촬영
+    func timerCapturePhoto() {
+        let timerTime = timerAmount
+        
+        switch(timerTime)
+        {
+        case 0 :
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0, execute: {
+                self.timerCaptureOn.toggle()
+                self.capturePhoto()
+            })
+        case 2 :
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+                self.timerCaptureOn.toggle()
+                self.capturePhoto()
+            })
+        case 3 :
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
+                self.timerCaptureOn.toggle()
+                self.capturePhoto()
+            })
+        case 5 :
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
+                self.timerCaptureOn.toggle()
+                self.capturePhoto()
+            })
+        case 10 :
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: {
+                self.timerCaptureOn.toggle()
+                self.capturePhoto()
+            })
+            
+        default:
+            self.timerCaptureOn.toggle()
+        }
     }
     
     // 사진 촬영
@@ -63,6 +109,9 @@ class CameraViewModel: ObservableObject {
             
             model.capturePhoto()
             print("[CameraViewModel]: Photo captured!")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.showPreview.toggle()
+            }
         } else {
             print("[CameraViewModel]: Camera's busy.")
         }

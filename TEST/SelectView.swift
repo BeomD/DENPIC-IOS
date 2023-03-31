@@ -8,25 +8,21 @@
 import SwiftUI
 
 struct SelectView: View {
-    @State var selector : String = "signIn"
     @EnvironmentObject var webViewModel : WebViewModel
     @EnvironmentObject var appViewModel : AppViewModel
     @EnvironmentObject var cameraViewModel : CameraViewModel
-    @State var hideNavigationBar : Bool = false
+    @State var hideNavigationBar : Bool = true
     var body: some View {
-        switch selector {
+        switch appViewModel.viewSelector.last {
         case "signIn":
-        SignInView().navigationBarBackButtonHidden(hideNavigationBar)
-        case "signedIn":
-        SignInedView().navigationBarBackButtonHidden(hideNavigationBar)
-        case "signUp":
-        SignUpView().navigationBarBackButtonHidden(hideNavigationBar)
-        case "findPassword":
-        findPasswordView().navigationBarBackButtonHidden(hideNavigationBar)
+        DefaultWebView().navigationBarBackButtonHidden(hideNavigationBar)
         case "camera":
         CameraView().navigationBarBackButtonHidden(hideNavigationBar)
+        case "gridPhotoView":
+        GridPhotoView().navigationBarBackButtonHidden(hideNavigationBar)
         default :
-        SignInView().navigationBarBackButtonHidden(hideNavigationBar)
+        DefaultWebView().navigationBarBackButtonHidden(hideNavigationBar)
         }
     }
 }
+

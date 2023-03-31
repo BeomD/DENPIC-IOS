@@ -1,10 +1,4 @@
-//
-//  MyWebview.swift
-//  SwiftUI_Webview_tutorial
-//
-//  Created by Jeff Jeong on 2020/07/02.
-//  Copyright © 2020 Tuentuenna. All rights reserved.
-//
+
 
 import SwiftUI
 import WebKit
@@ -17,9 +11,11 @@ struct MyWebView: UIViewRepresentable {
    
     @EnvironmentObject var appViewModel : AppViewModel
     @EnvironmentObject var webViewModel: WebViewModel
-    @State var urlToLoad : String = "https://denpic-prototype.web.app/signInMobile"
+    @EnvironmentObject var cameraViewModel : CameraViewModel
+
     // 리프레시 컨트롤 헬퍼 클래스 만들기
     let refreshHelper = MyWebViewRefreshConrolHelper()
+    @State var backPressed = false
     // 코디네이터 만들기
     func makeCoordinator() -> MyWebView.Coordinator {
         return MyWebView.Coordinator(self)
@@ -32,7 +28,7 @@ struct MyWebView: UIViewRepresentable {
         let myRefreshControl = UIRefreshControl()
         let webView = WKWebView(frame: .zero, configuration: createWKWebConfig())
         // unwrapping
-        guard let url = URL(string: urlToLoad) else {
+        guard let url = URL(string: webViewModel.urlToLoad) else {
             return WKWebView()
         }
             myRefreshControl.tintColor = UIColor.blue
@@ -54,8 +50,9 @@ struct MyWebView: UIViewRepresentable {
     // 업데이트 ui view
     func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<MyWebView>) {
        // print("UI 업데이트")
+            uiView.load(URLRequest(url : URL(string: webViewModel.urlToLoad)!))
     }
-    
+   
     func createWKWebConfig() -> WKWebViewConfiguration {
         let wkWebConfig = WKWebViewConfiguration()
         let preferences = WKPreferences()
@@ -67,12 +64,12 @@ struct MyWebView: UIViewRepresentable {
         // 웹뷰 유저 컨트롤러
         userContentController.add(self.makeCoordinator(), name: "signIn")
         userContentController.add(self.makeCoordinator(), name: "navigate")
+        userContentController.add(self.makeCoordinator(), name: "captureStart")
         wkWebConfig.userContentController = userContentController
         wkWebConfig.preferences = preferences
         
         return wkWebConfig
     }
-    
     
     class Coordinator: NSObject {
         
@@ -101,24 +98,30 @@ extension MyWebView.Coordinator : WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         DispatchQueue.main.async {
             if message.name == "signIn" {
+                self.myWebView.webViewModel.urlToLoad = "https://denpic-prototype.web.app/signInMobile"
                     self.myWebView.appViewModel.signInToken(token: "\(message.body)")
             }
             else if message.name == "navigate" {
                 if "\(message.body)" == "signIn"
                 {
-                        self.myWebView.appViewModel.viewSelector.removeLast()
+                    self.myWebView.webViewModel.urlToLoad="https://denpic-prototype.web.app/signInMobile"
+                    self.myWebView.backPressed = true
                 }
                 else if "\(message.body)" == "signUp"
                 {
-                        self.myWebView.appViewModel.signUpClicked.toggle()
-                        self.myWebView.appViewModel.viewSelector.append("signUp")
+                        self.myWebView.webViewModel.urlToLoad="https://denpic-prototype.web.app/signUpMobile"
+                        //self.myWebView.appViewModel.viewSelector.append("default")
                 }
                 
                 else if "\(message.body)" == "findPassword"
                 {
-                        self.myWebView.appViewModel.findPasswordClicked.toggle()
-                        self.myWebView.appViewModel.viewSelector.append("findPassword")
+                        self.myWebView.webViewModel.urlToLoad="https://denpic-prototype.web.app/passwordResetMobile"
+                        //self.myWebView.appViewModel.viewSelector.append("default")
                 }
+            }
+            else if message.name == "captureStart"
+            {
+                print("기타 구내사진 수 : \(message.body)")
             }
         }
     }

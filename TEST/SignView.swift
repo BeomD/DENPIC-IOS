@@ -9,25 +9,16 @@ import SwiftUI
 import FirebaseAuth
 
 class AppViewModel : ObservableObject{
-    
     @Published var viewSelector : [String] = ["camera"]
     @Published var signedIn = false
-    @Published var findPasswordClicked = false
-    @Published var signUpClicked = false
-    
+    @Published var appStoredData = UserDefaults.standard
+        
     let auth = Auth.auth()
     
     var isSignedIn: Bool {
         return auth.currentUser  != nil
     }
     
-    func setSignedInView(){
-            if self.signedIn {
-                //로그인 성공하면
-                self.viewSelector.append("signedIn")
-            }
-    }
-   
     func signInEmail(email: String, password: String){
         auth.signIn(withEmail:email,password: password){[weak self]
             result, error in guard result  != nil, error == nil else{return}
@@ -43,7 +34,6 @@ class AppViewModel : ObservableObject{
                 //Success
                 self?.signedIn = true
                 print("로그인 성공!")
-                self?.setSignedInView()
         }
     }
     
@@ -61,72 +51,17 @@ class AppViewModel : ObservableObject{
     }
 }
 
-struct SignInView: View {
+struct DefaultWebView: View {
+    @EnvironmentObject var webViewModel : WebViewModel
+    @EnvironmentObject var appViewModel : AppViewModel
+    @EnvironmentObject var cameraViewModel : CameraViewModel
     var body: some View {
         NavigationView{
             ZStack {
                 VStack{
-                    MyWebView(urlToLoad: "https://denpic-prototype.web.app/signInMobile").ignoresSafeArea()
+                    MyWebView().ignoresSafeArea().environmentObject(webViewModel).environmentObject(appViewModel)
                 }
             }
         }
     }
-}
-
-struct SignInedView: View {
-    var body: some View {
-        NavigationView{
-            ZStack {
-                VStack{
-                    MyWebView(urlToLoad: "https://www.naver.com").ignoresSafeArea()
-                }
-            }
-        }
-    }
-}
-
-
-
-struct SignUpView: View {
-    var body: some View {
-        NavigationView{
-            ZStack {
-                VStack{
-                    MyWebView(urlToLoad: "https://denpic-prototype.web.app/signUpMobile").ignoresSafeArea()
-                }
-            }
-        }
-        }
-}
-
-
-struct findPasswordView: View {
-    @State var email = ""
-    @State var password = ""
-    
-    @EnvironmentObject var viewModel :AppViewModel
-    
-    var body: some View {
-        NavigationView{
-            ZStack {
-                VStack{
-                    MyWebView(urlToLoad: "https://denpic-prototype.web.app/passwordResetMobile").ignoresSafeArea()
-                    //Image("logo").resizable().scaledToFit().frame(width:150,height:150)
-                    /// VStack{
-                    //  TextField("Email Address", text:$email).disableAutocorrection(true).autocapitalization(.none).background(Color(.secondarySystemBackground)).padding()
-                    // SecureField("Password", text: $password).disableAutocorrection(true).autocapitalization(.none).background(Color(.secondarySystemBackground)).padding()
-                    //Button(action:{
-                    //  guard !email.isEmpty, !password.isEmpty else{
-                    //     return
-                    //}
-                    //viewModel.signUp(email: email, password: password)},label: {
-                    //Text("Create Account")
-                    //.foregroundColor(Color.white).frame(width:200,height:50).background(Color.blue)})
-                    //}
-                    //Spacer()
-                    //}.padding().navigationTitle("Create Account")
-                }
-            }
-        }
-        }
 }

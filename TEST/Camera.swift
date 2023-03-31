@@ -9,7 +9,7 @@ class Camera: NSObject, ObservableObject {
     var isSilentModeOn = false
     var flashMode: AVCaptureDevice.FlashMode = .off
     var isTimerCaptureOn = false
-    
+    @Published var cameraExist = true
     @Published var recentImage: UIImage?
     @Published var isCameraBusy = false
 
@@ -38,6 +38,10 @@ class Camera: NSObject, ObservableObject {
             } catch {
                 print(error) // 에러 프린트
             }
+        }
+        else
+        {
+            cameraExist = false
         }
     }
     
@@ -84,22 +88,34 @@ class Camera: NSObject, ObservableObject {
       return devices.first(where: { device in device.position == position })!
     }
     func capturePhoto() {
-        // 사진 옵션 세팅
-        let photoSettings = AVCapturePhotoSettings()
-        photoSettings.flashMode = self.flashMode
-        
-        self.output.capturePhoto(with: photoSettings, delegate: self)
-        print("[Camera]: Photo's taken")
+        if cameraExist
+        {
+            // 사진 옵션 세팅
+            let photoSettings = AVCapturePhotoSettings()
+            photoSettings.flashMode = self.flashMode
+            
+            self.output.capturePhoto(with: photoSettings, delegate: self)
+            print("[Camera]: Photo's taken")
+        }
     }
     
     func savePhoto(_ imageData: Data) {
-        let watermark = UIImage(named: "watermark")
-        guard let image = UIImage(data: imageData) else { return }
-        
-        let newImage = image.overlayWith(image: watermark ?? UIImage())
-        
-        UIImageWriteToSavedPhotosAlbum(newImage, nil, nil, nil)
-        print("[Camera]: Photo's saved")
+        if cameraExist
+        {
+            let watermark = UIImage(named: "watermark")
+            guard let image = UIImage(data: imageData) else { return }
+            
+            let newImage = image.overlayWith(image: watermark ?? UIImage())
+            
+            UIImageWriteToSavedPhotosAlbum(newImage, nil, nil, nil)
+            print("[Camera]: Photo's saved")
+        }
+        else
+        {
+            let newImage = UIImage()
+            UIImageWriteToSavedPhotosAlbum(newImage, nil, nil, nil)
+            print("[Camera]: Photo's saved")
+        }
     }
     
     func zoom(_ zoom: CGFloat){
@@ -189,13 +205,22 @@ extension Camera: AVCapturePhotoCaptureDelegate {
         }
     }
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        guard let imageData = photo.fileDataRepresentation() else { return }
-        print("[CameraModel]: Capture routine's done")
-        
-        self.photoData = imageData
-        self.recentImage = UIImage(data: imageData)
-        self.savePhoto(imageData)
-        self.isCameraBusy = false
+        if cameraExist
+        {
+            guard let imageData = photo.fileDataRepresentation() else { return }
+            print("[CameraModel]: Capture routine's done")
+            
+            self.photoData = imageData
+            self.recentImage = UIImage(data: imageData)
+            //self.savePhoto(imageData)
+            self.isCameraBusy = false
+        }
+        else
+        {
+            self.recentImage = UIImage()
+            self.isCameraBusy = false
+            print("카메라가 없어서 빈이미지를 저장했습니다")
+        }
     }
 }
 
